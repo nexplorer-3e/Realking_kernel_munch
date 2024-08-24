@@ -1,6 +1,8 @@
 name: Build kernel for munch flavor
 
-# env:
+# FIXME: allow specify url
+env:
+  CLANG_URL: 'https://raw.githubusercontent.com/v3kt0r-87/Clang-Stable/main/clang-weebx-beta.txt'
 
 on:
   push:
@@ -10,7 +12,7 @@ on:
 permissions:
   contents: read
 
-jobs:
+jobs:     
   build:
     runs-on: ubuntu-latest
     strategy:
@@ -19,9 +21,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Clang (weebx-clang-beta)
+      - name: Get clang latest url (weebx-clang-beta)
+        id: clang-url
         run: |
-          CLANG_URL=$(curl -s https://raw.githubusercontent.com/v3kt0r-87/Clang-Stable/main/clang-weebx-beta.txt)
+          echo "key=$(curl -s ${{ env.CLANG_URL }})" >> $GITHUB_OUTPUT
+
+      - name: Cache toolchain
+        id: cache-clang
+        uses: actions/cache@v4
+        with:
+          path: ../clang/
+          keys: ${{ steps.clang-url.outputs.key }}
+
+      - name: Download Clang
+        if: steps.cache-clang.outputs.cache-hit != 'true'
+        run: |
+          CLANG_URL="${{ steps.clang-url.outputs.key }}"
           ARCHIVE_NAME="weebx-clang-beta.tar.gz"
           pushd ..
             wget -nv "$CLANG_URL" -O "$ARCHIVE_NAME"
@@ -30,6 +45,13 @@ jobs:
             rm -f "$ARCHIVE_NAME"
           popd
 
+      - name: Save Toolchain if not cached
+        if: steps.cache-clang.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ../clang/
+          key: ${{ steps.clang-url.outputs.key }}
+          
       - name: Build ${{ matrix.build-flavor }}
         run: |
           case "${{ matrix.build-flavor }}"
@@ -43,7 +65,7 @@ jobs:
           esac
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: RealKing-munch-${{ matrix.build-flavor }}
           path: '${{ github.workspace }}/RealKing-Munch-${{ matrix.build-flavor }}*.zip'
