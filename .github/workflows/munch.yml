@@ -30,28 +30,29 @@ jobs:
         id: cache-clang
         uses: actions/cache@v4
         with:
-          path: ../clang/
+          path: _clang/
           key: ${{ steps.clang-url.outputs.key }}
 
       - name: Download Clang
         if: steps.cache-clang.outputs.cache-hit != 'true'
         run: |
           CLANG_URL="${{ steps.clang-url.outputs.key }}"
-          ARCHIVE_NAME="weebx-clang-beta.tar.gz"
-          pushd ..
-            wget -nv "$CLANG_URL" -O "$ARCHIVE_NAME"
-            mkdir clang
-            tar xvf "$ARCHIVE_NAME" -C clang
-            rm -f "$ARCHIVE_NAME"
-          popd
+          ARCHIVE_NAME="weebx-clang-beta.tar.gz"          
+          wget -nv "$CLANG_URL" -O "$ARCHIVE_NAME"
+          mkdir _clang
+          tar xvf "$ARCHIVE_NAME" -C _clang
+          rm -f "$ARCHIVE_NAME"
 
       - name: Save Toolchain if not cached
         if: steps.cache-clang.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: ../clang/
+          path: _clang/
           key: ${{ steps.clang-url.outputs.key }}
-          
+
+      - name: Workaround for gh relative path restriction
+        run: mv _clang ../clang
+
       - name: Build ${{ matrix.build-flavor }}
         run: |
           case "${{ matrix.build-flavor }}"
