@@ -31,7 +31,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ../clang/
-          keys: ${{ steps.clang-url.outputs.key }}
+          key: ${{ steps.clang-url.outputs.key }}
 
       - name: Download Clang
         if: steps.cache-clang.outputs.cache-hit != 'true'
