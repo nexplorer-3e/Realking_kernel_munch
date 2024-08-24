@@ -22,17 +22,27 @@ jobs:
           CLANG_URL=$(curl -s https://raw.githubusercontent.com/v3kt0r-87/Clang-Stable/main/clang-weebx-beta.txt)
           ARCHIVE_NAME="weebx-clang-beta.tar.gz"
           pushd ..
-            wget "$CLANG_URL" -O "$ARCHIVE_NAME"
+            wget -nv "$CLANG_URL" -O "$ARCHIVE_NAME"
             mkdir clang
             tar xvf "$ARCHIVE_NAME" -C clang
             rm -f "$ARCHIVE_NAME"
           popd
 
-      - name: Build
+      - name: Build miui
         run: echo "1" | bash munch.sh
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
-          name: RealKing-munch-kernel
-          path: '${{ github.workspace }}/Realking-Munch-*.zip'
+          name: RealKing-munch-miui
+          path: '${{ github.workspace }}/Realking-Munch-MIUI*.zip'
+      
+      - name: Build aosp
+        run: echo "2" | bash munch.sh
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v3
+        with:
+          name: RealKing-munch-aosp
+          path: '${{ github.workspace }}/Realking-Munch-AOSP*.zip'
+      
