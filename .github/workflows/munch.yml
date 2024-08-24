@@ -13,7 +13,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        build-flavor: ['MIUI', 'AOSP']
     steps:
       - uses: actions/checkout@v4
 
@@ -28,21 +30,21 @@ jobs:
             rm -f "$ARCHIVE_NAME"
           popd
 
-      - name: Build miui
-        run: echo "1" | bash munch.sh
+      - name: Build ${{ matrix.build-flavor }}
+        run: |
+          case "${{ matrix.build-flavor }}"
+          in
+            "MIUI")
+              echo 1 | bash munch.sh
+            ;;
+            *)
+              echo 2 | bash munch.sh
+            ;;
+          esac
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: RealKing-munch-miui
-          path: '${{ github.workspace }}/Realking-Munch-MIUI*.zip'
-      
-      - name: Build aosp
-        run: echo "2" | bash munch.sh
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
-        with:
-          name: RealKing-munch-aosp
-          path: '${{ github.workspace }}/Realking-Munch-AOSP*.zip'
+          name: RealKing-munch-${{ matrix.build-flavor }}
+          path: '${{ github.workspace }}/RealKing-Munch-${{ matrix.build-flavor }}*.zip'
       
