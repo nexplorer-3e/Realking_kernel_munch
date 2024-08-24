@@ -1,0 +1,38 @@
+name: Build kernel for munch flavor
+
+# env:
+
+on:
+  push:
+    branches: 'munch'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Clang (weebx-clang-beta)
+        run: |
+          CLANG_URL=$(curl -s https://raw.githubusercontent.com/v3kt0r-87/Clang-Stable/main/clang-weebx-beta.txt)
+          ARCHIVE_NAME="weebx-clang-beta.tar.gz"
+          pushd ..
+            wget "$CLANG_URL" -O "$ARCHIVE_NAME"
+            mkdir clang
+            tar xvf "$ARCHIVE_NAME" -C clang
+            rm -f "$ARCHIVE_NAME"
+          popd
+
+      - name: Build
+        run: echo "1" | bash munch.sh
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v3
+        with:
+          name: RealKing-munch-kernel
+          path: '${{ github.workspace }}/Realking-Munch-*.zip'
